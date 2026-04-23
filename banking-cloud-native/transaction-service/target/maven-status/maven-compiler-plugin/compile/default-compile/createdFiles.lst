@@ -1,5 +1,7 @@
+com\banking\transaction\config\RabbitMQConfig.class
 com\banking\transaction\model\Transaction.class
-com\banking\transaction\service\TransactionService.class
-com\banking\transaction\repository\TransactionRepository.class
+com\banking\transaction\service\TransactionEventPublisher.class
 com\banking\transaction\controller\TransactionController.class
 com\banking\transaction\TransactionServiceApplication.class
+com\banking\transaction\service\TransactionService.class
+com\banking\transaction\repository\TransactionRepository.class

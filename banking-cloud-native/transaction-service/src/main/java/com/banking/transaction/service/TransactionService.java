@@ -13,9 +13,13 @@ import java.util.List;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final TransactionEventPublisher transactionEventPublisher;
 
-    public TransactionService(TransactionRepository transactionRepository) {
+    public TransactionService(
+            TransactionRepository transactionRepository,
+            TransactionEventPublisher transactionEventPublisher) {
         this.transactionRepository = transactionRepository;
+        this.transactionEventPublisher = transactionEventPublisher;
     }
 
     public Transaction saveTransaction(Transaction transaction) {
@@ -29,7 +33,9 @@ public class TransactionService {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "amount must be greater than zero");
         }
-        return transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        transactionEventPublisher.publishTransactionEvent(savedTransaction);
+        return savedTransaction;
     }
 
     public List<Transaction> getHistoryByAccountId(Long accountId) {

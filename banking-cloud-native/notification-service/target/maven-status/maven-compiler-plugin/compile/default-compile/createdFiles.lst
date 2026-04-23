@@ -1,1 +1,6 @@
+com\banking\notification\model\Notification.class
+com\banking\notification\service\NotificationListener.class
+com\banking\notification\repository\NotificationRepository.class
+com\banking\notification\config\RabbitMQConfig.class
+com\banking\notification\controller\NotificationController.class
 com\banking\notification\NotificationServiceApplication.class
