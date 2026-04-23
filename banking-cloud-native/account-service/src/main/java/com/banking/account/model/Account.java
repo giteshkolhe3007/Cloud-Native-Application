@@ -19,8 +19,14 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "owner_name", nullable = false)
-    private String ownerName;
+    @Column(name = "account_number", nullable = false, unique = true)
+    private String accountNumber;
+
+    @Column(name = "account_type", nullable = false)
+    private String accountType;
+
+    @Column(name = "owner_email", nullable = false)
+    private String ownerEmail;
 
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
@@ -36,10 +42,6 @@ public class Account {
     public Account() {
     }
 
-    public Account(String ownerName) {
-        this.ownerName = ownerName;
-    }
-
     public Long getId() {
         return id;
     }
@@ -48,12 +50,28 @@ public class Account {
         this.id = id;
     }
 
-    public String getOwnerName() {
-        return ownerName;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
     }
 
     public BigDecimal getBalance() {
