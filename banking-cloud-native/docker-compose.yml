@@ -1,0 +1,154 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - banking-network
+
+  postgres-user:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  postgres-account:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: accountdb
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking123
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-account-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  postgres-transaction:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: transactiondb
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking123
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-transaction-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  postgres-notification:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking123
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-notification-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  eureka-server:
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - banking-network
+
+  api-gateway:
+    build: ./api-gateway
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    networks:
+      - banking-network
+
+  user-service:
+    build: ./user-service
+    depends_on:
+      - eureka-server
+      - postgres-user
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/userdb
+      SPRING_DATASOURCE_USERNAME: banking
+      SPRING_DATASOURCE_PASSWORD: banking123
+    ports:
+      - "8081:8081"
+    networks:
+      - banking-network
+
+  account-service:
+    build: ./account-service
+    depends_on:
+      - eureka-server
+      - postgres-account
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-account:5432/accountdb
+      SPRING_DATASOURCE_USERNAME: banking
+      SPRING_DATASOURCE_PASSWORD: banking123
+    ports:
+      - "8082:8082"
+    networks:
+      - banking-network
+
+  transaction-service:
+    build: ./transaction-service
+    depends_on:
+      - eureka-server
+      - postgres-transaction
+      - rabbitmq
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-transaction:5432/transactiondb
+      SPRING_DATASOURCE_USERNAME: banking
+      SPRING_DATASOURCE_PASSWORD: banking123
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8083:8083"
+    networks:
+      - banking-network
+
+  notification-service:
+    build: ./notification-service
+    depends_on:
+      - eureka-server
+      - postgres-notification
+      - rabbitmq
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/notificationdb
+      SPRING_DATASOURCE_USERNAME: banking
+      SPRING_DATASOURCE_PASSWORD: banking123
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8084:8084"
+    networks:
+      - banking-network
+
+networks:
+  banking-network:
+    driver: bridge
+
+volumes:
+  postgres-user-data:
+  postgres-account-data:
+  postgres-transaction-data:
+  postgres-notification-data:
