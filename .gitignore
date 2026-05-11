@@ -21,3 +21,17 @@ dist-ssr
 *.sln
 *.sw?
 .env
+# Maven build output
+**/target/
+*.jar
+*.war
+*.class
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
