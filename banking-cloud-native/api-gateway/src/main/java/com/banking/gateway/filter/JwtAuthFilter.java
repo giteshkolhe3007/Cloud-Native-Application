@@ -34,9 +34,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        HttpMethod method = exchange.getRequest().getMethod();
-
-        if (HttpMethod.POST.equals(method) && ("/auth/register".equals(path) || "/auth/login".equals(path))) {
+        if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
@@ -74,5 +72,11 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return -1;
+    }
+
+    private boolean isPublicPath(String path) {
+        return path.equals("/api/users/auth/register")
+                || path.equals("/api/users/auth/login")
+                || path.startsWith("/api/users/auth/");
     }
 }

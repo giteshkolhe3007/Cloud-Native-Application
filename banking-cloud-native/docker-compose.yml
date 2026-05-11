@@ -65,13 +65,20 @@ services:
     build: ./eureka-server
     ports:
       - "8761:8761"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - banking-network
 
   api-gateway:
     build: ./api-gateway
     depends_on:
-      - eureka-server
+      eureka-server:
+        condition: service_healthy
     environment:
       EUREKA_URI: http://eureka-server:8761/eureka/
     ports:
@@ -82,13 +89,17 @@ services:
   user-service:
     build: ./user-service
     depends_on:
-      - eureka-server
-      - postgres-user
+      eureka-server:
+        condition: service_healthy
+      postgres-user:
+        condition: service_started
     environment:
       EUREKA_URI: http://eureka-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/userdb
       SPRING_DATASOURCE_USERNAME: banking
       SPRING_DATASOURCE_PASSWORD: banking123
+      DB_DRIVER: org.postgresql.Driver
+      HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "8081:8081"
     networks:
@@ -97,13 +108,17 @@ services:
   account-service:
     build: ./account-service
     depends_on:
-      - eureka-server
-      - postgres-account
+      eureka-server:
+        condition: service_healthy
+      postgres-account:
+        condition: service_started
     environment:
       EUREKA_URI: http://eureka-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-account:5432/accountdb
       SPRING_DATASOURCE_USERNAME: banking
       SPRING_DATASOURCE_PASSWORD: banking123
+      DB_DRIVER: org.postgresql.Driver
+      HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "8082:8082"
     networks:
@@ -112,15 +127,20 @@ services:
   transaction-service:
     build: ./transaction-service
     depends_on:
-      - eureka-server
-      - postgres-transaction
-      - rabbitmq
+      eureka-server:
+        condition: service_healthy
+      postgres-transaction:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     environment:
       EUREKA_URI: http://eureka-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-transaction:5432/transactiondb
       SPRING_DATASOURCE_USERNAME: banking
       SPRING_DATASOURCE_PASSWORD: banking123
       SPRING_RABBITMQ_HOST: rabbitmq
+      DB_DRIVER: org.postgresql.Driver
+      HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "8083:8083"
     networks:
@@ -129,15 +149,20 @@ services:
   notification-service:
     build: ./notification-service
     depends_on:
-      - eureka-server
-      - postgres-notification
-      - rabbitmq
+      eureka-server:
+        condition: service_healthy
+      postgres-notification:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     environment:
       EUREKA_URI: http://eureka-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/notificationdb
       SPRING_DATASOURCE_USERNAME: banking
       SPRING_DATASOURCE_PASSWORD: banking123
       SPRING_RABBITMQ_HOST: rabbitmq
+      DB_DRIVER: org.postgresql.Driver
+      HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "8084:8084"
     networks:
