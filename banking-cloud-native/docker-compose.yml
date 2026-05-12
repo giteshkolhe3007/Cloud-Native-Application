@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -168,6 +166,32 @@ services:
     networks:
       - banking-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - banking-network
+    depends_on:
+      - eureka-server
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - banking-network
+    depends_on:
+      - prometheus
+
 networks:
   banking-network:
     driver: bridge
@@ -177,3 +201,4 @@ volumes:
   postgres-account-data:
   postgres-transaction-data:
   postgres-notification-data:
+  grafana-data:

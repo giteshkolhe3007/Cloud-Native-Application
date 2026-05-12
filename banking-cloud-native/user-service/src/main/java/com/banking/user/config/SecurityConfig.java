@@ -20,6 +20,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/actuator/prometheus")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/actuator/metrics/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/auth/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
                         .anyRequest().authenticated()
