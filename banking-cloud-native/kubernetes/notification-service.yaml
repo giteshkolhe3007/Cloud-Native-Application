@@ -1,0 +1,100 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: banking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+      - name: notification-service
+        image: banking-cloud-native-notification-service:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8084
+        env:
+        - name: HOSTNAME_OVERRIDE
+          value: "notification-service"
+        - name: EUREKA_URI
+          valueFrom:
+            configMapKeyRef:
+              name: banking-config
+              key: EUREKA_URI
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres-notification:5432/notificationdb"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_PASSWORD
+        - name: DB_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: banking-config
+              key: DB_DRIVER
+        - name: HIBERNATE_DIALECT
+          valueFrom:
+            configMapKeyRef:
+              name: banking-config
+              key: HIBERNATE_DIALECT
+        - name: SPRING_RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: banking-config
+              key: SPRING_RABBITMQ_HOST
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8084
+          initialDelaySeconds: 45
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8084
+          initialDelaySeconds: 90
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: banking
+spec:
+  selector:
+    app: notification-service
+  ports:
+  - port: 8084
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: notification-service-hpa
+  namespace: banking
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: notification-service
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

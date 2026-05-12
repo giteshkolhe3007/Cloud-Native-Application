@@ -26,6 +26,9 @@ spring:
     password: guest
 
 eureka:
+  instance:
+    hostname: ${HOSTNAME_OVERRIDE:${spring.application.name}}
+    preferIpAddress: false
   client:
     serviceUrl:
       defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}

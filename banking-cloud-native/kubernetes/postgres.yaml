@@ -1,0 +1,227 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-user
+  namespace: banking
+spec:
+  selector:
+    matchLabels:
+      app: postgres-user
+  serviceName: postgres-user
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-user
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "userdb"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-user
+  namespace: banking
+spec:
+  selector:
+    app: postgres-user
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-account
+  namespace: banking
+spec:
+  selector:
+    matchLabels:
+      app: postgres-account
+  serviceName: postgres-account
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-account
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "accountdb"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-account
+  namespace: banking
+spec:
+  selector:
+    app: postgres-account
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-transaction
+  namespace: banking
+spec:
+  selector:
+    matchLabels:
+      app: postgres-transaction
+  serviceName: postgres-transaction
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-transaction
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "transactiondb"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-transaction
+  namespace: banking
+spec:
+  selector:
+    app: postgres-transaction
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-notification
+  namespace: banking
+spec:
+  selector:
+    matchLabels:
+      app: postgres-notification
+  serviceName: postgres-notification
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-notification
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "notificationdb"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banking-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-notification
+  namespace: banking
+spec:
+  selector:
+    app: postgres-notification
+  ports:
+  - port: 5432
