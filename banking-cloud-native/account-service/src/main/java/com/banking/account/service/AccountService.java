@@ -2,6 +2,8 @@ package com.banking.account.service;
 
 import com.banking.account.model.Account;
 import com.banking.account.repository.AccountRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +47,8 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    @CircuitBreaker(name = "accountService", fallbackMethod = "getAccountFallback")
+    @Retry(name = "accountService")
     public Account getAccount(Long id, String userEmailHeader) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
@@ -59,6 +63,7 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
+    @CircuitBreaker(name = "accountService", fallbackMethod = "depositFallback")
     public Account deposit(Long id, BigDecimal amount, String userEmailHeader) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deposit amount must be greater than zero");
@@ -68,6 +73,7 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    @CircuitBreaker(name = "accountService", fallbackMethod = "withdrawFallback")
     public Account withdraw(Long id, BigDecimal amount, String userEmailHeader) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdraw amount must be greater than zero");
@@ -78,6 +84,18 @@ public class AccountService {
         }
         account.setBalance(account.getBalance().subtract(amount));
         return accountRepository.save(account);
+    }
+
+    public Account getAccountFallback(Long id, String userEmailHeader, Exception ex) {
+        throw new RuntimeException("Account service temporarily unavailable. Please try again later.");
+    }
+
+    public Account depositFallback(Long id, BigDecimal amount, String userEmailHeader, Exception ex) {
+        throw new RuntimeException("Deposit service temporarily unavailable. Please try again later.");
+    }
+
+    public Account withdrawFallback(Long id, BigDecimal amount, String userEmailHeader, Exception ex) {
+        throw new RuntimeException("Withdrawal service temporarily unavailable. Please try again later.");
     }
 
     private void enforceOwnerAccess(Account account, String userEmailHeader) {

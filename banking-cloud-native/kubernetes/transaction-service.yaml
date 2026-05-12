@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: transaction-service
-        image: banking-cloud-native-transaction-service:v2
+        image: banking-cloud-native-transaction-service:v3
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8083

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: account-service
-        image: banking-cloud-native-account-service:v2
+        image: banking-cloud-native-account-service:v3
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8082
